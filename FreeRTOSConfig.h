@@ -39,14 +39,17 @@
 
 #define configUSE_PREEMPTION					1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	0
-#define configUSE_IDLE_HOOK						0
+
+// Compiler defines are being used for this parameter
+//#define configUSE_IDLE_HOOK						1
+
 #define configUSE_TICK_HOOK						0
 #define configUSE_DAEMON_TASK_STARTUP_HOOK		1
 #define configTICK_RATE_HZ						( 1000 ) /* In this non-real time simulated environment the tick frequency has to be at least a multiple of the Win32 tick frequency, and therefore very slow. */
 #define configMINIMAL_STACK_SIZE				( PTHREAD_STACK_MIN )
 #define configTOTAL_HEAP_SIZE					( ( size_t ) ( 84 * 1024 ) )
 #define configMAX_TASK_NAME_LEN					( 12 )
-#define configUSE_TRACE_FACILITY				0
+#define configUSE_TRACE_FACILITY				1
 #define configUSE_16_BIT_TICKS					0
 #define configIDLE_SHOULD_YIELD					1
 #define configUSE_MUTEXES						1
@@ -119,5 +122,17 @@ functions anyway. */
 	extern void vGenerateCoreBInterrupt( void * xUpdatedMessageBuffer );
 	#define sbSEND_COMPLETED( pxStreamBuffer ) vGenerateCoreBInterrupt( pxStreamBuffer )
 #endif /* configINCLUDE_MESSAGE_BUFFER_AMP_DEMO */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern void vAssertCalled( const char * const pcFileName,  unsigned long ulLine );
+
+#ifdef __cplusplus
+}
+#endif
+
+#define configASSERT( x ) if( ( x ) == 0 ) vAssertCalled(  __FILE__, __LINE__ )
 
 #endif /* FREERTOS_CONFIG_H */
