@@ -45,7 +45,8 @@
 
 #define configUSE_TICK_HOOK						0
 #define configUSE_DAEMON_TASK_STARTUP_HOOK		1
-#define configTICK_RATE_HZ						( 1000 ) /* In this non-real time simulated environment the tick frequency has to be at least a multiple of the Win32 tick frequency, and therefore very slow. */
+//#define configTICK_RATE_HZ						( 1000 ) /* In this non-real time simulated environment the tick frequency has to be at least a multiple of the Win32 tick frequency, and therefore very slow. */
+#define configTICK_RATE_HZ						( 10 ) /* In this non-real time simulated environment the tick frequency has to be at least a multiple of the Win32 tick frequency, and therefore very slow. */
 #define configMINIMAL_STACK_SIZE				( PTHREAD_STACK_MIN )
 #define configTOTAL_HEAP_SIZE					( ( size_t ) ( 84 * 1024 ) )
 #define configMAX_TASK_NAME_LEN					( 12 )
