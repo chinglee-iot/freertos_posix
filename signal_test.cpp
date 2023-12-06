@@ -33,13 +33,65 @@ bool main_running;
 bool running;
 typedef void (*test_fn)(void* arg);
 
+bool received_signal_on_external_pthread;
+
+#include <signal.h>
+
+struct sigaction original_signal;
+
+void sigalarm_handler(int signal)
+{
+    // no non-FreeRTOS pthreads should receive the incorrect
+    // signal
+    auto this_thread = pthread_self();
+    for(auto i = 0; i < external_pthreads_in_use; i++)
+    {
+        if(external_pthreads[i] == this_thread)
+        {
+            received_signal_on_external_pthread = true;
+
+            const char *str = "******************** received signal on external pthread *********\n";
+            const size_t size = strlen(str);
+            write(1, str, size);
+
+// NOTE: printf() is NOT safe in the context of a signal handler as
+// we could be inside of another printf when the signal handler started
+// executing, so we use write(), which is safe inside of signal handlers
+//            printf("******* received signal %d on external pthread 0x%ld *********\n", signal, this_thread);
+        }
+    }
+
+    // call into the original signal
+    original_signal.sa_handler(signal);
+}
+
+// register sigalarm to detect
+// signals incorrectly going to pthreads
+void setup_signal()
+{
+    struct sigaction sigtick;
+    sigtick.sa_flags = 0;
+    sigtick.sa_handler = sigalarm_handler;
+    sigfillset( &sigtick.sa_mask );
+    int ret = sigaction( SIGALRM, &sigtick, &original_signal );
+    if( ret != 0)
+    {
+        printf("sigaction failed\n");
+    }
+}
 
 void a_task_function(void* arg)
 {
     printf("%s\n", __FUNCTION__);
 
+    // override the signal handler with our wrapper once
+    // the FreeRTOS scheduler has started running, otherwise
+    // our handler would be overwritten during the POSIX
+    // port startup process
+    setup_signal();
+
     // run test
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(2000));
 
     printf("%s asking main to shut down\n", __FUNCTION__);
     main_running = false;
@@ -81,42 +133,16 @@ static void app_main(void* arg)
 static StackType_t app_stack [TASK_DEPTH];
 static StaticTask_t app_task;
 
-#include <signal.h>
 
-struct sigaction original_signal;
+bool run_another_thread = true;
 
-void sigalarm_handler(int signal)
+void another_thread()
 {
-    // no non-FreeRTOS pthreads should receive the incorrect
-    // signal
-    auto this_thread = pthread_self();
-    for(auto i = 0; i < external_pthreads_in_use; i++)
+    while(run_another_thread)
     {
-        if(external_pthreads[i] == this_thread)
-        {
-            const char *str = "******************** received signal on external pthread *********\n";
-            const size_t size = strlen(str);
-            write(1, str, size);
-//            printf("******* received signal %d on external pthread 0x%ld *********\n", signal, this_thread);
-        }
-    }
-
-    // call into the original signal
-    original_signal.sa_handler(signal);
-}
-
-void setup_signal()
-{
-    // register sigalarm to detect
-    // signals incorrectly going to pthreads
-    struct sigaction sigtick;
-    sigtick.sa_flags = 0;
-    sigtick.sa_handler = sigalarm_handler;
-    sigfillset( &sigtick.sa_mask );
-    int ret = sigaction( SIGALRM, &sigtick, &original_signal );
-    if( ret != 0)
-    {
-        printf("sigaction failed\n");
+        printf("running\n");
+        for(volatile uint32_t x = 0; x < 10000; x++) {}
+        usleep(100000);
     }
 }
 
@@ -124,6 +150,10 @@ int main()
 {
     // save the thread
     external_pthreads[external_pthreads_in_use] = pthread_self();
+    external_pthreads_in_use++;
+
+    auto t1 = new std::thread(another_thread);
+    external_pthreads[external_pthreads_in_use] = t1->native_handle();
     external_pthreads_in_use++;
 
     // start a task
@@ -142,4 +172,10 @@ int main()
 
     // should return here after ending the scheduler
     printf("After vTaskStartScheduler()\n");
+
+    run_another_thread = false;
+    t1->join();
+    delete t1;
+
+    return (received_signal_on_external_pthread == false) ? 0 : 1;
 }
