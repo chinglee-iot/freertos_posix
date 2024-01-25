@@ -2,7 +2,6 @@
  * @brief Testing restarting the scheduler after it has been stoppped.
  *
  */
-#include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include <thread>
 #include <cstdio>
@@ -60,6 +59,9 @@ static void app_main(void* arg)
     // clean up here
     printf("cleaning up and stopping scheduler\n");
 
+    /* Delete application created tasks here. */
+    vTaskDelete( xHandle );
+
     vTaskEndScheduler();
 
     printf("after vTaskEndScheduler\n");
@@ -97,6 +99,9 @@ int main()
         vTaskStartScheduler();
 
         printf("%s scheduler exited\n", __FUNCTION__);
+
+        /* Reset kernel state before restarting scheduler. */
+        vTaskResetState();
     }
 
     return 0;

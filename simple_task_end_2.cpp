@@ -38,13 +38,14 @@ static StaticTask_t app_task;
 
 static void app_main(void* arg)
 {
+    TaskHandle_t xTaskAHandle;
     printf("%s starting system up\n", __FUNCTION__);
 
     ///////
     // create various tasks and objects for the system
 
     // start the task
-    xTaskCreateStatic(a_task_function, "a_task", TASK_DEPTH, NULL,
+    xTaskAHandle = xTaskCreateStatic(a_task_function, "a_task", TASK_DEPTH, NULL,
                     1, a_stack, &a_task);
 
     int loops_to_run_for = 10;
@@ -58,6 +59,9 @@ static void app_main(void* arg)
 
     // clean up here
     printf("cleaning up and stopping scheduler\n");
+
+    /* Delete application created tasks here. */
+    vTaskDelete( xTaskAHandle );
 
     vTaskEndScheduler();
 

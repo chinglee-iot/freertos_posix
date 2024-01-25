@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.16)
 
 enable_testing()
 
@@ -70,6 +70,7 @@ make_freertos_executable(simple_task_end_2 simple_task_end_2.cpp ${FREERTOS_KERN
 make_freertos_executable(simple_static_task_end simple_static_task_end.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
 make_freertos_executable(simple_static_task_end_2 simple_static_task_end_2.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
 
-make_freertos_executable(signal_test signal_test.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
+# Mark the signal test for valgrind test speed with interval timer.
+# make_freertos_executable(signal_test signal_test.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
 
 make_freertos_executable(restart_scheduler restart_scheduler.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
