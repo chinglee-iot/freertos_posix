@@ -2,8 +2,6 @@
  * @brief Testing restarting the scheduler after it has been stoppped.
  *
  */
-
-#include "FreeRTOS/FreeRTOS/Source/portable/ThirdParty/GCC/Posix/portmacro.h"
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include <thread>

@@ -30,42 +30,46 @@ function(register_test test_name executable_name)
     endif()
 endfunction()
 
-file(GLOB FREERTOS_SRC_FILES ${CMAKE_SOURCE_DIR}/FreeRTOS/FreeRTOS/Source/*.c)
-
 function(make_freertos_executable name files freertos defines)
 add_executable(${name}
     ${files}
     ${CMAKE_SOURCE_DIR}/freertos_functions.cpp
-    ${FREERTOS_SRC_FILES}
-    ${CMAKE_SOURCE_DIR}/FreeRTOS/FreeRTOS/Source/portable/MemMang/heap_3.c
-    ${CMAKE_SOURCE_DIR}/FreeRTOS/FreeRTOS/Source/portable/ThirdParty/GCC/Posix/port.c
-    ${CMAKE_SOURCE_DIR}/FreeRTOS/FreeRTOS/Source/portable/ThirdParty/GCC/Posix/utils/wait_for_event.c
+    ${freertos}/croutine.c
+    ${freertos}/event_groups.c
+    ${freertos}/list.c
+    ${freertos}/queue.c
+    ${freertos}/stream_buffer.c
+    ${freertos}/tasks.c
+    ${freertos}/timers.c
+    ${freertos}/portable/MemMang/heap_3.c
+    ${freertos}/portable/ThirdParty/GCC/Posix/port.c
+    ${freertos}/portable/ThirdParty/GCC/Posix/utils/wait_for_event.c
     ${FREERTOS_TRACE_SRC_FILES}
 )
 
 target_include_directories(${name} PRIVATE
     ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/FreeRTOS/FreeRTOS/Source/include
-    ${CMAKE_SOURCE_DIR}/FreeRTOS/FreeRTOS/Source/portable/ThirdParty/GCC/Posix
-    ${CMAKE_SOURCE_DIR}/FreeRTOS/FreeRTOS/Source/portable/ThirdParty/GCC/Posix/utils
+    ${freertos}/include
+    ${freertos}/portable/ThirdParty/GCC/Posix
+    ${freertos}/portable/ThirdParty/GCC/Posix/utils
 )
 
 target_compile_definitions(${name} PUBLIC ${defines})
+
+target_link_libraries(${name} pthread)
 
 register_test(${name} $<TARGET_FILE:${name}>)
 
 endfunction()
 
+set(FREERTOS_KERNEL ${CMAKE_SOURCE_DIR}/FreeRTOS-Kernel)
 
-set(FREERTOS_UPSTREAM ${CMAKE_SOURCE_DIR}/FreeRTOS_upstream)
-set(FREERTOS_NEW ${CMAKE_SOURCE_DIR}/FreeRTOS)
+make_freertos_executable(simple_task_end simple_task_end.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
+make_freertos_executable(simple_task_end_2 simple_task_end_2.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
 
-make_freertos_executable(simple_task_end simple_task_end.cpp ${FREERTOS_NEW} "configUSE_IDLE_HOOK=0")
-make_freertos_executable(simple_task_end_2 simple_task_end_2.cpp ${FREERTOS_NEW} "configUSE_IDLE_HOOK=0")
+make_freertos_executable(simple_static_task_end simple_static_task_end.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
+make_freertos_executable(simple_static_task_end_2 simple_static_task_end_2.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
 
-make_freertos_executable(simple_static_task_end simple_static_task_end.cpp ${FREERTOS_NEW} "configUSE_IDLE_HOOK=0")
-make_freertos_executable(simple_static_task_end_2 simple_static_task_end_2.cpp ${FREERTOS_NEW} "configUSE_IDLE_HOOK=0")
+make_freertos_executable(signal_test signal_test.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
 
-make_freertos_executable(signal_test signal_test.cpp ${FREERTOS_NEW} "configUSE_IDLE_HOOK=0")
-
-make_freertos_executable(restart_scheduler restart_scheduler.cpp ${FREERTOS_NEW} "configUSE_IDLE_HOOK=0")
+make_freertos_executable(restart_scheduler restart_scheduler.cpp ${FREERTOS_KERNEL} "configUSE_IDLE_HOOK=0")
