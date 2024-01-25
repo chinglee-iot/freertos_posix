@@ -1,6 +1,0 @@
-[submodule "FreeRTOS"]
-	path = FreeRTOS
-	url = https://github.com/cmorganBE/FreeRTOS.git
-[submodule "FreeRTOS_upstream"]
-	path = FreeRTOS_upstream
-	url = git@github.com:FreeRTOS/FreeRTOS.git
