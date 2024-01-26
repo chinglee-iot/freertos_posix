@@ -100,6 +100,9 @@ int main()
 
         printf("%s scheduler exited\n", __FUNCTION__);
 
+        // Delete the task calling vTaskEndScheduler.
+        vTaskDelete( xTaskGetCurrentTaskHandle() );
+
         /* Reset kernel state before restarting scheduler. */
         vTaskResetState();
     }

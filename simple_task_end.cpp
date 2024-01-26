@@ -88,6 +88,9 @@ int main()
     // blocks until vTaskEndScheduler() is called
     vTaskStartScheduler();
 
+    // Delete the task calling vTaskEndScheduler.
+    vTaskDelete( xTaskGetCurrentTaskHandle() );
+
     printf("%s exiting\n", __FUNCTION__);
 
     return 0;
